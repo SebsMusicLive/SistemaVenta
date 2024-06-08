@@ -4,6 +4,8 @@
  */
 package vista;
 
+import java.awt.event.KeyEvent;
+import reportes.Excel;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -14,6 +16,8 @@ import modelo.Producto;
 import modelo.ProductoDAO;
 import modelo.Proveedor;
 import modelo.ProveedorDAO;
+import modelo.Venta;
+import modelo.VentaDAO;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 /**
@@ -28,7 +32,12 @@ public class Sistema extends javax.swing.JFrame {
     ProveedorDAO prDAO = new ProveedorDAO();
     Producto pro = new Producto();
     ProductoDAO proDAO = new ProductoDAO();
+    Venta v = new Venta();
+    VentaDAO vDAO = new VentaDAO();
     DefaultTableModel modelo = new DefaultTableModel();
+
+    int item;
+    double totalPagar = 0.00;
 
     /**
      * Creates new form Sistema
@@ -75,10 +84,10 @@ public class Sistema extends javax.swing.JFrame {
         }
         tblProveedor.setModel(modelo);
     }
-    
+
     public void listarProductos() {
         List<Producto> listarProduct = proDAO.listarProductos();
-        modelo = (DefaultTableModel) tblProveedor.getModel();
+        modelo = (DefaultTableModel) tblProducto.getModel();
         Object[] ob = new Object[6];
 
         for (int i = 0; i < listarProduct.size(); i++) {
@@ -92,7 +101,7 @@ public class Sistema extends javax.swing.JFrame {
         }
         tblProducto.setModel(modelo);
     }
-    
+
     public void limpiarTable() {
         for (int i = 0; i < modelo.getRowCount(); i++) {
             modelo.removeRow(i);
@@ -117,6 +126,7 @@ public class Sistema extends javax.swing.JFrame {
         btnProductos = new javax.swing.JButton();
         btnVenta = new javax.swing.JButton();
         btnConfig = new javax.swing.JButton();
+        lblVendedor = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
@@ -263,6 +273,8 @@ public class Sistema extends javax.swing.JFrame {
         btnConfig.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/config.png"))); // NOI18N
         btnConfig.setText("Config");
 
+        lblVendedor.setText("Vida Information");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -280,12 +292,18 @@ public class Sistema extends javax.swing.JFrame {
                     .addComponent(btnVenta, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnConfig, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(42, 42, 42)
+                .addComponent(lblVendedor)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(66, 66, 66)
+                .addGap(44, 44, 44)
+                .addComponent(lblVendedor)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnNuevaVenta)
                 .addGap(18, 18, 18)
                 .addComponent(btnClientes)
@@ -326,10 +344,26 @@ public class Sistema extends javax.swing.JFrame {
         jLabel7.setText("Stock Disponible");
 
         btnEliminarVenta.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/eliminar.png"))); // NOI18N
+        btnEliminarVenta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarVentaActionPerformed(evt);
+            }
+        });
+
+        txtCodigoVenta.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtCodigoVentaKeyPressed(evt);
+            }
+        });
 
         txtCantidadVenta.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtCantidadVentaActionPerformed(evt);
+            }
+        });
+        txtCantidadVenta.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtCantidadVentaKeyPressed(evt);
             }
         });
 
@@ -360,9 +394,20 @@ public class Sistema extends javax.swing.JFrame {
         jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel9.setText("Nombre");
 
+        txtRucVentas.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtRucVentasKeyPressed(evt);
+            }
+        });
+
         txtNombreClienteVenta.setEditable(false);
 
         btnGenerarVenta.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/print.png"))); // NOI18N
+        btnGenerarVenta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGenerarVentaActionPerformed(evt);
+            }
+        });
 
         jLabel10.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -846,6 +891,11 @@ public class Sistema extends javax.swing.JFrame {
                 "ID", "CODIGO", "DESCRIPCIÓN", "PROVEEDOR", "CANTIDAD", "PRECIO"
             }
         ));
+        tblProducto.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblProductoMouseClicked(evt);
+            }
+        });
         jScrollPane4.setViewportView(tblProducto);
         if (tblProducto.getColumnModel().getColumnCount() > 0) {
             tblProducto.getColumnModel().getColumn(0).setPreferredWidth(20);
@@ -871,10 +921,20 @@ public class Sistema extends javax.swing.JFrame {
         });
 
         btnEliminarPro.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/eliminar.png"))); // NOI18N
+        btnEliminarPro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarProActionPerformed(evt);
+            }
+        });
 
         btnNuevoProducto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/nuevo.png"))); // NOI18N
 
         btnExcelProducto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/excel.png"))); // NOI18N
+        btnExcelProducto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExcelProductoActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -1111,6 +1171,7 @@ public class Sistema extends javax.swing.JFrame {
 
     private void btnNuevaVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNuevaVentaActionPerformed
         // TODO add your handling code here:
+        jTabbedPane1.setSelectedIndex(0);
     }//GEN-LAST:event_btnNuevaVentaActionPerformed
 
     private void btnProveedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProveedorActionPerformed
@@ -1134,6 +1195,23 @@ public class Sistema extends javax.swing.JFrame {
 
     private void btnEditarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarProductoActionPerformed
         // TODO add your handling code here:
+        if ("".equals(txtIdProduct.getText())) {
+            JOptionPane.showMessageDialog(null, "Seleccione una fila");
+        } else {
+            if (!"".equals(txtCodigoProducto.getText()) || !"".equals(txtDescripcionProducto.getText()) || !"".equals(txtCantidadProducto.getText()) || !"".equals(txtPrecioProducto.getText())) {
+                pro.setCodigo(txtCodigoProducto.getText());
+                pro.setNombre(txtDescripcionProducto.getText());
+                pro.setProveedor(cbxProveedorProducto.getSelectedItem().toString());
+                pro.setStock(Integer.parseInt(txtCantidadProducto.getText()));
+                pro.setPrecio(Double.parseDouble(txtPrecioProducto.getText()));
+                pro.setId(Integer.parseInt(txtIdProduct.getText()));
+                proDAO.modificarProductos(pro);
+                JOptionPane.showMessageDialog(null, "Producto modificado");
+                limpiarTable();
+                listarProductos();
+                limpiarProductos();
+            }
+        }
     }//GEN-LAST:event_btnEditarProductoActionPerformed
 
     private void txtCantidadVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCantidadVentaActionPerformed
@@ -1171,7 +1249,7 @@ public class Sistema extends javax.swing.JFrame {
             limpiarTable();
             limpiarCliente();
             listarClientes();
-            
+
         } else {
             JOptionPane.showMessageDialog(null, "Los campos están vacíos");
         }
@@ -1212,7 +1290,7 @@ public class Sistema extends javax.swing.JFrame {
                 limpiarTable();
                 limpiarCliente();
                 listarClientes();
-            } else{
+            } else {
                 JOptionPane.showMessageDialog(null, "Los campos están vacíos");
             }
         }
@@ -1225,7 +1303,7 @@ public class Sistema extends javax.swing.JFrame {
 
     private void btnGuardarProveedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarProveedorActionPerformed
         // TODO add your handling code here:
-        if(!"".equals(txtRucProveedor.getText())|| !"".equals(txtNombreProveedor.getText()) || !"".equals(txtTelefonoProveedor.getText()) || !"".equals(txtDireccionProveedor.getText()) || !"".equals(txtRazonProveedor.getText())){
+        if (!"".equals(txtRucProveedor.getText()) || !"".equals(txtNombreProveedor.getText()) || !"".equals(txtTelefonoProveedor.getText()) || !"".equals(txtDireccionProveedor.getText()) || !"".equals(txtRazonProveedor.getText())) {
             pr.setRuc(Integer.parseInt(txtRucProveedor.getText()));
             pr.setNombre(txtNombreProveedor.getText());
             pr.setTelefono(Integer.parseInt(txtTelefonoProveedor.getText()));
@@ -1236,8 +1314,8 @@ public class Sistema extends javax.swing.JFrame {
             limpiarTable();
             listarProveedores();
             limpiarProveedor();
-            
-        }else{
+
+        } else {
             JOptionPane.showMessageDialog(null, "Los campos están vacíos");
         }
     }//GEN-LAST:event_btnGuardarProveedorActionPerformed
@@ -1255,26 +1333,26 @@ public class Sistema extends javax.swing.JFrame {
 
     private void btnEliminarProveedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarProveedorActionPerformed
         // TODO add your handling code here:
-        if(!"".equals(txtIdProveedor.getText())){
+        if (!"".equals(txtIdProveedor.getText())) {
             int pregunta = JOptionPane.showConfirmDialog(null, "¿Está seguro de eliminar?");
-            if(pregunta == 0){
+            if (pregunta == 0) {
                 int id = Integer.parseInt(txtIdProveedor.getText());
                 prDAO.eliminarProveedor(id);
                 limpiarTable();
                 listarProveedores();
                 limpiarProveedor();
             }
-        }else{
+        } else {
             JOptionPane.showMessageDialog(null, "Seleccione una fila");
         }
     }//GEN-LAST:event_btnEliminarProveedorActionPerformed
 
     private void btnEditarProveedorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarProveedorActionPerformed
         // TODO add your handling code here:
-        if("".equals(txtIdProveedor.getText())){
+        if ("".equals(txtIdProveedor.getText())) {
             JOptionPane.showMessageDialog(null, "Seleccione una fila");
-        }else{
-            if(!"".equals(txtRucProveedor.getText())|| !"".equals(txtNombreProveedor.getText()) || !"".equals(txtTelefonoProveedor.getText()) || !"".equals(txtDireccionProveedor.getText()) || !"".equals(txtRazonProveedor.getText())){
+        } else {
+            if (!"".equals(txtRucProveedor.getText()) || !"".equals(txtNombreProveedor.getText()) || !"".equals(txtTelefonoProveedor.getText()) || !"".equals(txtDireccionProveedor.getText()) || !"".equals(txtRazonProveedor.getText())) {
                 pr.setRuc(Integer.parseInt(txtRucProveedor.getText()));
                 pr.setNombre(txtNombreProveedor.getText());
                 pr.setTelefono(Integer.parseInt(txtTelefonoProveedor.getText()));
@@ -1297,7 +1375,7 @@ public class Sistema extends javax.swing.JFrame {
 
     private void btnGuardarProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarProductoActionPerformed
         // TODO add your handling code here:
-        if(!"".equals(txtCodigoProducto.getText())|| !"".equals(txtDescripcionProducto.getText()) || !"".equals(cbxProveedorProducto.getSelectedItem()) || !"".equals(txtCantidadProducto.getText()) || !"".equals(txtPrecioProducto.getText())){
+        if (!"".equals(txtCodigoProducto.getText()) || !"".equals(txtDescripcionProducto.getText()) || !"".equals(cbxProveedorProducto.getSelectedItem()) || !"".equals(txtCantidadProducto.getText()) || !"".equals(txtPrecioProducto.getText())) {
             pro.setCodigo(txtCodigoProducto.getText());
             pro.setNombre(txtDescripcionProducto.getText());
             pro.setProveedor(cbxProveedorProducto.getSelectedItem().toString());
@@ -1305,7 +1383,7 @@ public class Sistema extends javax.swing.JFrame {
             pro.setPrecio(Double.parseDouble(txtPrecioProducto.getText()));
             proDAO.registrarProductos(pro);
             JOptionPane.showMessageDialog(null, "Producto registrado");
-        }else{
+        } else {
             JOptionPane.showMessageDialog(null, "Los campos están vacíos");
         }
     }//GEN-LAST:event_btnGuardarProductoActionPerformed
@@ -1316,6 +1394,137 @@ public class Sistema extends javax.swing.JFrame {
         listarProductos();
         jTabbedPane1.setSelectedIndex(3);
     }//GEN-LAST:event_btnProductosActionPerformed
+
+    private void tblProductoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblProductoMouseClicked
+        // TODO add your handling code here:
+        int fila = tblProducto.rowAtPoint(evt.getPoint());
+        txtIdProduct.setText(tblProducto.getValueAt(fila, 0).toString());
+        txtCodigoProducto.setText(tblProducto.getValueAt(fila, 1).toString());
+        txtDescripcionProducto.setText(tblProducto.getValueAt(fila, 2).toString());
+        cbxProveedorProducto.setSelectedItem(tblProducto.getValueAt(fila, 3).toString());
+        txtCantidadProducto.setText(tblProducto.getValueAt(fila, 4).toString());
+        txtPrecioProducto.setText(tblProducto.getValueAt(fila, 5).toString());
+    }//GEN-LAST:event_tblProductoMouseClicked
+
+    private void btnEliminarProActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarProActionPerformed
+        // TODO add your handling code here:
+        if (!"".equals(txtIdProduct.getText())) {
+            int pregunta = JOptionPane.showConfirmDialog(null, "¿Estás seguro de eliminar el Producto?");
+            if (pregunta == 0) {
+                int id = Integer.parseInt(txtIdProduct.getText());
+                proDAO.eliminarProductos(id);
+                limpiarTable();
+                limpiarProductos();
+                listarProductos();
+            }
+        }
+    }//GEN-LAST:event_btnEliminarProActionPerformed
+
+    private void btnExcelProductoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcelProductoActionPerformed
+        // TODO add your handling code here:
+        Excel.reporte();
+    }//GEN-LAST:event_btnExcelProductoActionPerformed
+
+    private void txtCodigoVentaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCodigoVentaKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (!"".equals(txtCodigoVenta.getText())) {
+                String cod = txtCodigoVenta.getText();
+                pro = proDAO.BuscarPro(cod);
+                if (pro.getNombre() != null) {
+                    txtDescripcionVenta.setText("" + pro.getNombre());
+                    txtPrecioVenta.setText("" + pro.getPrecio());
+                    txtStockDisponible.setText("" + pro.getStock());
+                    txtCantidadVenta.requestFocus();
+                } else {
+                    limpiarVenta();
+                    txtCantidadVenta.requestFocus();
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Ingrese el código de productos");
+                txtCodigoVenta.requestFocus();
+            }
+        }
+    }//GEN-LAST:event_txtCodigoVentaKeyPressed
+
+    private void txtCantidadVentaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCantidadVentaKeyPressed
+        // TODO add your handling code here:
+
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (!"".equals(txtCantidadVenta.getText())) {
+                String cod = txtCodigoVenta.getText();
+                String descripcion = txtDescripcionVenta.getText();
+                int cant = Integer.parseInt(txtCantidadVenta.getText());
+                double precio = Double.parseDouble(txtPrecioVenta.getText());
+                double total = cant * precio;
+                int stock = Integer.parseInt(txtStockDisponible.getText());
+                if (stock >= cant) {
+                    item = item + 1;
+                    modelo = (DefaultTableModel) tblVenta.getModel();
+                    for (int i = 0; i < tblVenta.getRowCount(); i++) {
+                        if (tblVenta.getValueAt(i, 1).equals(txtDescripcionVenta.getText())) {
+                            JOptionPane.showMessageDialog(null, "El producto ya está registrado");
+                            return;
+                        }
+                    }
+                    ArrayList lista = new ArrayList();
+                    lista.add(item);
+                    lista.add(cod);
+                    lista.add(descripcion);
+                    lista.add(cant);
+                    lista.add(precio);
+                    lista.add(total);
+                    Object[] o = new Object[5];
+                    o[0] = lista.get(1);
+                    o[1] = lista.get(2);
+                    o[2] = lista.get(3);
+                    o[3] = lista.get(4);
+                    o[4] = lista.get(5);
+                    modelo.addRow(o);
+                    tblVenta.setModel(modelo);
+                    totalPagar();
+                    limpiarVenta();
+                    txtCodigoVenta.requestFocus();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Stock no disponible");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Ingrese cantidad ");
+            }
+        }
+    }//GEN-LAST:event_txtCantidadVentaKeyPressed
+
+    private void btnEliminarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarVentaActionPerformed
+        // TODO add your handling code here:
+        modelo = (DefaultTableModel) tblVenta.getModel();
+        modelo.removeRow(tblVenta.getSelectedRow());
+        totalPagar();
+        txtCodigoVenta.requestFocus();
+    }//GEN-LAST:event_btnEliminarVentaActionPerformed
+
+    private void txtRucVentasKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtRucVentasKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (!"".equals(txtRucVentas.getText())) {
+                int dni = Integer.parseInt(txtRucVentas.getText());
+                cl = client.buscarCliente(dni);
+                if (cl.getNombre() != null) {
+                    txtNombreClienteVenta.setText("" + cl.getNombre());
+                    txtTelefonoClienteVenta.setText("" + cl.getTelefono());
+                    txtDireccionClienteVenta.setText("" + cl.getDireccion());
+                    txtRazonClienteVenta.setText("" + cl.getRazon());
+                } else {
+                    txtRucVentas.setText("");
+                    JOptionPane.showMessageDialog(null, "El cliente no existe");
+                }
+            }
+        }
+    }//GEN-LAST:event_txtRucVentasKeyPressed
+
+    private void btnGenerarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenerarVentaActionPerformed
+        // TODO add your handling code here:
+        registrarVenta();
+    }//GEN-LAST:event_btnGenerarVentaActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1427,6 +1636,7 @@ public class Sistema extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField25;
     private javax.swing.JTextField jTextField26;
     private javax.swing.JLabel lblTotal;
+    private javax.swing.JLabel lblVendedor;
     private javax.swing.JTable tblCliente;
     private javax.swing.JTable tblProducto;
     private javax.swing.JTable tblProveedor;
@@ -1471,6 +1681,7 @@ public class Sistema extends javax.swing.JFrame {
         txtDireccionCliente.setText("");
         txtRazonCliente.setText("");
     }
+
     private void limpiarProveedor() {
         txtIdProveedor.setText("");
         txtRucProveedor.setText("");
@@ -1479,4 +1690,42 @@ public class Sistema extends javax.swing.JFrame {
         txtDireccionProveedor.setText("");
         txtRazonProveedor.setText("");
     }
+
+    private void limpiarProductos() {
+        txtIdProducto.setText("");
+        txtCodigoProducto.setText("");
+        txtDescripcionProducto.setText("");
+        cbxProveedorProducto.setSelectedItem("");
+        txtCantidadProducto.setText("");
+        txtPrecioProducto.setText("");
+    }
+
+    private void totalPagar() {
+        totalPagar = 0.00;
+        int numFila = tblVenta.getRowCount();
+        for (int i = 0; i < numFila; i++) {
+            double calc = Double.parseDouble(String.valueOf(tblVenta.getModel().getValueAt(i, 4)));
+            totalPagar = totalPagar + calc;
+        }
+        lblTotal.setText(String.format("%.2f", totalPagar));
+    }
+
+    private void limpiarVenta() {
+        txtCodigoVenta.setText("");
+        txtDescripcionVenta.setText("");
+        txtCantidadVenta.setText("");
+        txtStockDisponible.setText("");
+        txtPrecioVenta.setText("");
+    }
+
+    private void registrarVenta() {
+        String cliente = txtNombreClienteVenta.getText();
+        String vendedor = lblVendedor.getText();
+        double monto = totalPagar;
+        v.setCliente(cliente);
+        v.setVendedor(vendedor);
+        v.setTotal(monto);
+        vDAO.registrarVenta(v);
+    }
+
 }
